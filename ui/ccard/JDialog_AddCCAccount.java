@@ -152,14 +152,12 @@ public class JDialog_AddCCAccount extends javax.swing.JDialog {
         JRadioButton_Gold.setSelected(false);
         JRadioButton_Silver.setSelected(true);
         JRadioButton_Bronze.setSelected(false);
-
     }
 
     void JRadioButtonBronze_mouseClicked(java.awt.event.MouseEvent event) {
         JRadioButton_Gold.setSelected(false);
         JRadioButton_Silver.setSelected(false);
         JRadioButton_Bronze.setSelected(true);
-
     }
 
     class SymAction implements java.awt.event.ActionListener {
@@ -188,7 +186,6 @@ public class JDialog_AddCCAccount extends javax.swing.JDialog {
             else
                 parentframe.accountType = "Bronze";
         }
-
         parentframe.newaccount = true;
         dispose();
     }

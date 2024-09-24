@@ -35,6 +35,7 @@ public class CardFrm extends javax.swing.JFrame {
         getContentPane().add(BorderLayout.CENTER, JPanel1);
         JPanel1.setBounds(0, 0, 575, 310);
 
+
 		/*
 		/Add five buttons on the pane 
 		/for Adding personal account, Adding company account

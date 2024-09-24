@@ -1,8 +1,17 @@
 package edu.mum.cs.cs525.labs.exercises.project.ui.bank;
 
+import edu.mum.cs.cs525.labs.exercises.project.ui.DBConnect;
+import edu.mum.cs.cs525.labs.exercises.project.ui.framework.Account;
+import edu.mum.cs.cs525.labs.exercises.project.ui.framework.command.Command;
+import edu.mum.cs.cs525.labs.exercises.project.ui.framework.command.Invoker.TransactionProcessor;
+import edu.mum.cs.cs525.labs.exercises.project.ui.framework.command.concreteCommands.DepositCommand;
+import edu.mum.cs.cs525.labs.exercises.project.ui.framework.command.concreteCommands.WithdrawCommand;
+
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.WindowEvent;
+import java.sql.Connection;
+import java.sql.SQLException;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.*;
 
@@ -16,8 +25,10 @@ public class BankFrm extends javax.swing.JFrame {
     String accountnr, clientName, street, city, zip, state, accountType, clientType, amountDeposit;
     boolean newaccount;
     private DefaultTableModel model;
+
     private JTable JTable1;
     private JScrollPane JScrollPane1;
+
     BankFrm myframe;
     private Object rowdata[];
 
@@ -31,11 +42,14 @@ public class BankFrm extends javax.swing.JFrame {
         JPanel1.setLayout(null);
         getContentPane().add(BorderLayout.CENTER, JPanel1);
         JPanel1.setBounds(0, 0, 575, 310);
-		/*
+
+        /*
 		/Add five buttons on the pane 
 		/for Adding personal account, Adding company account
 		/Deposit, Withdraw and Exit from the system
 		*/
+
+        // Add personal account
         JScrollPane1 = new JScrollPane();
         model = new DefaultTableModel();
         JTable1 = new JTable(model);
@@ -45,32 +59,38 @@ public class BankFrm extends javax.swing.JFrame {
         model.addColumn("P/C");
         model.addColumn("Ch/S");
         model.addColumn("Amount");
-        rowdata = new Object[8];
+        rowdata    = new Object[8];
         newaccount = false;
 
-
+        //table
         JPanel1.add(JScrollPane1);
         JScrollPane1.setBounds(12, 92, 444, 160);
         JScrollPane1.getViewport().add(JTable1);
         JTable1.setBounds(0, 0, 420, 0);
-//        rowdata = new Object[8];
+        //rowdata = new Object[8];
 
-        JButton_PerAC.setText("Add personal account");
+
+        JButton_PerAC.setText("Add Personal Account");
         JPanel1.add(JButton_PerAC);
         JButton_PerAC.setBounds(24, 20, 192, 33);
+
         JButton_CompAC.setText("Add company account");
         JButton_CompAC.setActionCommand("jbutton");
         JPanel1.add(JButton_CompAC);
         JButton_CompAC.setBounds(240, 20, 192, 33);
+
         JButton_Deposit.setText("Deposit");
         JPanel1.add(JButton_Deposit);
         JButton_Deposit.setBounds(468, 104, 96, 33);
+
         JButton_Withdraw.setText("Withdraw");
         JPanel1.add(JButton_Withdraw);
+        JButton_Withdraw.setBounds(468, 164, 96, 33);
+
         JButton_Addinterest.setBounds(448, 20, 106, 33);
         JButton_Addinterest.setText("Add interest");
         JPanel1.add(JButton_Addinterest);
-        JButton_Withdraw.setBounds(468, 164, 96, 33);
+
         JButton_Exit.setText("Exit");
         JPanel1.add(JButton_Exit);
         JButton_Exit.setBounds(468, 248, 96, 31);
@@ -80,6 +100,7 @@ public class BankFrm extends javax.swing.JFrame {
 
         JButton_PerAC.setActionCommand("jbutton");
 
+        //action listeners
         SymWindow aSymWindow = new SymWindow();
         this.addWindowListener(aSymWindow);
         SymAction lSymAction = new SymAction();
@@ -89,7 +110,6 @@ public class BankFrm extends javax.swing.JFrame {
         JButton_Deposit.addActionListener(lSymAction);
         JButton_Withdraw.addActionListener(lSymAction);
         JButton_Addinterest.addActionListener(lSymAction);
-
     }
 
 
@@ -99,10 +119,12 @@ public class BankFrm extends javax.swing.JFrame {
      * Creates a new JFrame1 and makes it visible.
      *****************************************************/
     static public void main(String args[]) {
+        //fetch data
+        DBConnect.getData();
+
         try {
             // Add the following code if you want the Look and Feel
             // to be set to the Look and Feel of the native system.
-
             try {
                 UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
             } catch (Exception e) {
@@ -127,9 +149,9 @@ public class BankFrm extends javax.swing.JFrame {
 
     void exitApplication() {
         try {
-            this.setVisible(false);    // hide the Frame
-            this.dispose();            // free the system resources
-            System.exit(0);            // close the application
+            this.setVisible(false); // hide the Frame
+            this.dispose();         // free the system resources
+            System.exit(0);  // close the application
         } catch (Exception e) {
         }
     }
@@ -144,7 +166,6 @@ public class BankFrm extends javax.swing.JFrame {
 
     void BankFrm_windowClosing(java.awt.event.WindowEvent event) {
         // to do: code goes here.
-
         BankFrm_windowClosing_Interaction1(event);
     }
 
@@ -170,7 +191,6 @@ public class BankFrm extends javax.swing.JFrame {
                 JButtonWithdraw_actionPerformed(event);
             else if (object == JButton_Addinterest)
                 JButtonAddinterest_actionPerformed(event);
-
         }
     }
 
@@ -230,7 +250,11 @@ public class BankFrm extends javax.swing.JFrame {
         }
     }
 
+    //Command Pattern : Invoker
+    TransactionProcessor processor = new TransactionProcessor();
+
     void JButtonDeposit_actionPerformed(java.awt.event.ActionEvent event) {
+        System.out.println("pressed on deposit..");
         // get selected name
         int selection = JTable1.getSelectionModel().getMinSelectionIndex();
         if (selection >= 0) {
@@ -242,14 +266,23 @@ public class BankFrm extends javax.swing.JFrame {
             dep.show();
 
             // compute new amount
-            long deposit = Long.parseLong(amountDeposit);
-            String samount = (String) model.getValueAt(selection, 5);
-            long currentamount = Long.parseLong(samount);
-            long newamount = currentamount + deposit;
-            model.setValueAt(String.valueOf(newamount), selection, 5);
+            if(!amountDeposit.isEmpty()){
+                long deposit = Long.parseLong(amountDeposit); //get amount entered by the user
+
+                //getSelectedAccount();
+
+                String samount = (String) model.getValueAt(selection, 5);//existing one
+                long currentamount = Long.parseLong(samount);
+
+                long newamount = currentamount + deposit;
+                model.setValueAt(String.valueOf(newamount), selection, 5);
+
+                // create and execute the deposit command
+                //Command deposit = new DepositCommand(selectedAccount, amount);
+                //processor.processTransaction(deposit);
+            }
+
         }
-
-
     }
 
     void JButtonWithdraw_actionPerformed(java.awt.event.ActionEvent event) {
@@ -264,16 +297,36 @@ public class BankFrm extends javax.swing.JFrame {
             wd.show();
 
             // compute new amount
-            long deposit = Long.parseLong(amountDeposit);
-            String samount = (String) model.getValueAt(selection, 5);
-            long currentamount = Long.parseLong(samount);
-            long newamount = currentamount - deposit;
-            model.setValueAt(String.valueOf(newamount), selection, 5);
-            if (newamount < 0) {
-                JOptionPane.showMessageDialog(JButton_Withdraw, " Account " + accnr + " : balance is negative: $" + String.valueOf(newamount) + " !", "Warning: negative balance", JOptionPane.WARNING_MESSAGE);
+            if(!amountDeposit.isEmpty()){
+                long deposit = Long.parseLong(amountDeposit); // get amount entered by the user
+
+                String samount = (String) model.getValueAt(selection, 5);
+                long currentamount = Long.parseLong(samount);
+
+                long newamount = currentamount - deposit;
+                model.setValueAt(String.valueOf(newamount), selection, 5);
+                if (newamount < 0) {
+                    JOptionPane.showMessageDialog(JButton_Withdraw, STR." Account \{accnr} : balance is negative: $\{String.valueOf(newamount)} !", "Warning: negative balance", JOptionPane.WARNING_MESSAGE);
+                }
+
+                // Create and execute the withdraw command
+                //Command withdraw = new WithdrawCommand(selectedAccount, amount);
+                //processor.processTransaction(withdraw);
             }
         }
     }
+
+    // get the selected account from the JTable
+//    private Account getSelectedAccount() {
+//        int selectedRow = JTable_Accounts.getSelectedRow();
+//
+//        // Assuming the first column contains the account number
+//        String accountNumber = (String) JTable_Accounts.getValueAt(selectedRow, 0);
+//
+//        // Fetch the Account object (you might have a map of accountNumber to Account)
+//        Account selectedAccount = findAccountByNumber(accountNumber);
+//        return selectedAccount;
+//    }
 
     void JButtonAddinterest_actionPerformed(java.awt.event.ActionEvent event) {
         JOptionPane.showMessageDialog(JButton_Addinterest, "Add interest to all accounts", "Add interest to all accounts", JOptionPane.WARNING_MESSAGE);
