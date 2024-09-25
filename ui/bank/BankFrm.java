@@ -36,6 +36,7 @@ public class BankFrm extends javax.swing.JFrame {
     public BankFrm() {
         this.applicationFacade = new BankApplicationImpl();
         myframe = this;
+
         setTitle("Bank Application.");
         setDefaultCloseOperation(javax.swing.JFrame.DO_NOTHING_ON_CLOSE);
         getContentPane().setLayout(new BorderLayout(0, 0));
@@ -122,10 +123,10 @@ public class BankFrm extends javax.swing.JFrame {
                 // Read data from the ResultSet and add it to the JTable
                 Object[] row = {
                         rs.getString("accountnr"),// Adjust column names as per your DB
-                        rs.getString("clientName"),
+                        rs.getString("accname"),
                         rs.getString("city"),
-                        rs.getString("clientType"),// Personal/Company
-                        "P", // Checking/Savings => rs.getString("accountType")
+                        rs.getString("acctype"),// Personal/Company
+                        rs.getString("accstatus"),// Checking/Savings =>
                         rs.getDouble("amountDeposit")
                 };
                 model.addRow(row);  // Add row to the table model
@@ -155,7 +156,6 @@ public class BankFrm extends javax.swing.JFrame {
 
             //Create a new instance of our application's frame, and make it visible.
             BankFrm bankFrm = new BankFrm();
-            //(new BankFrm()).setVisible(true);
             bankFrm.loadAccountsIntoTable();
             bankFrm.setVisible(true);
         } catch (Throwable t) {
@@ -232,7 +232,6 @@ public class BankFrm extends javax.swing.JFrame {
 		 construct a JDialog_AddPAcc type object 
 		 set the boundaries and show it 
 		*/
-
         JDialog_AddPAcc pac = new JDialog_AddPAcc(myframe);
         pac.setBounds(450, 20, 300, 330);
         pac.show();
@@ -249,6 +248,7 @@ public class BankFrm extends javax.swing.JFrame {
             newAccount.setName(clientName);
         }
 
+        //personal account
         if (newaccount) {
             // add row to table
 //            rowdata[0] = accountnr;
@@ -264,15 +264,19 @@ public class BankFrm extends javax.swing.JFrame {
             // Capture input fields
             String accountnr = this.accountnr;
             String clientName = this.clientName;
+
             String street = this.street;
-            String city = this.city;
-            String zip = this.zip;
+            String city  = this.city;
+            String zip   = this.zip;
             String state = this.state;
-            String clientType = "Personal"; // Personal account
+
+            String accType = "Personal";// Personal account
+            String accStatus = this.accountType.toString();//Checking/Saving
+
             double amountDeposit = 0;//Double.parseDouble(this.amountDeposit);
 
             // Call DBConnect to insert the account
-            DBConnect.createAccount(accountnr, clientName, street, city, zip, state, clientType, amountDeposit);
+            DBConnect.createAccount(accountnr, clientName, street, city, zip, state, accType, accStatus, amountDeposit);
 
             // Refresh the JTable (fetch data again)
             loadAccountsIntoTable();
@@ -302,17 +306,37 @@ public class BankFrm extends javax.swing.JFrame {
             newAccount.setName(clientName);
         }
 
+        //company account
         if (newaccount) {
             // add row to table
-            rowdata[0] = accountnr;
-            rowdata[1] = clientName;
-            rowdata[2] = city;
-            rowdata[3] = "C";
-            rowdata[4] = accountType;
-            rowdata[5] = "0";
-            model.addRow(rowdata);
-            JTable1.getSelectionModel().setAnchorSelectionIndex(-1);
-            newaccount = false;
+//            rowdata[0] = accountnr;
+//            rowdata[1] = clientName;
+//            rowdata[2] = city;
+//            rowdata[3] = "C";
+//            rowdata[4] = accountType;
+//            rowdata[5] = "0";
+//            model.addRow(rowdata);
+//            JTable1.getSelectionModel().setAnchorSelectionIndex(-1);
+//            newaccount = false;
+
+            String accountnr = this.accountnr;
+            String clientName = this.clientName;
+
+            String street = this.street;
+            String city  = this.city;
+            String zip   = this.zip;
+            String state = this.state;
+
+            String accType = "Company";// Company account
+            String accStatus = this.accountType.toString();// Checking/Saving
+
+            double amountDeposit = 0;//Double.parseDouble(this.amountDeposit);
+
+            // Call DBConnect to insert the account
+            DBConnect.createAccount(accountnr, clientName, street, city, zip, state, accType, accStatus, amountDeposit);
+
+            // Refresh the JTable (fetch data again)
+            loadAccountsIntoTable();
         }
     }
 
@@ -329,18 +353,19 @@ public class BankFrm extends javax.swing.JFrame {
             dep.show();
 
             // compute new amount
-            if(!amountDeposit.isEmpty()){
+            if(amountDeposit != null && !amountDeposit.isEmpty() ){
                 long deposit = Long.parseLong(amountDeposit);
+                System.out.println("selection");
+                System.out.println(model.getValueAt(selection, 5));
 
-                String samount = (String) model.getValueAt(selection, 5);
-                Account account = this.applicationFacade.getAccounts().get(selection);
+                Double samount = (Double) model.getValueAt(selection, 5);
+                //Account account = this.applicationFacade.getAccounts().get(selection);
+                //this.applicationFacade.deposit(account, Double.valueOf(amountDeposit));
 
-
-                this.applicationFacade.deposit(account, Double.valueOf(amountDeposit));
-
-                long currentamount = Long.parseLong(samount);
-                long newamount = currentamount + deposit;
+                Double currentamount = samount;
+                Double newamount = currentamount + deposit;
                 model.setValueAt(String.valueOf(newamount), selection, 5);
+                DBConnect.updateAccountBalance(accnr, newamount);
             }
         }
     }

@@ -28,19 +28,23 @@ public class DBConnect {
     /* CRUD OPERATIONS */
 
     //Insert(create)
-    public static void createAccount(String accountnr, String clientName, String street, String city, String zip, String state, String clientType, double amountDeposit) {
-        String sqlInsert = "INSERT INTO accounts (accountnr, clientName, street, city, zip, state, clientType, amountDeposit) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+    public static void createAccount(String accountnr, String accname, String street, String city, String zip, String state, String accountType, String accountStatus, double amountDeposit) {
+        String sqlInsert = "INSERT INTO accounts (accountnr, accname, street, city, zip, state, acctype, accstatus, amountDeposit) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
         try {
             Connection conn = getConnection();
             PreparedStatement ps = conn.prepareStatement(sqlInsert);
             ps.setString(1, accountnr);
-            ps.setString(2, clientName);
+            ps.setString(2, accname);
+
             ps.setString(3, street);
             ps.setString(4, city);
             ps.setString(5, zip);
             ps.setString(6, state);
-            ps.setString(7, clientType);
-            ps.setDouble(8, amountDeposit);
+
+            ps.setString(7, accountType);
+            ps.setString(8, accountStatus);
+
+            ps.setDouble(9, amountDeposit);
             ps.executeUpdate();
             System.out.println("Account created successfully!");
         } catch (SQLException e) {
@@ -62,14 +66,15 @@ public class DBConnect {
     }
 
     //update account
-    public static void updateAccount( double amountDeposit) {
-        String sqlUpdate = "UPDATE accounts SET clientName = ?, street = ?, city = ?, zip = ?, state = ?, clientType = ?, amountDeposit = ? WHERE accountnr = ?";
+    public static void updateAccountBalance(String accountnr, double newAmount) {
+        String sqlUpdate = "UPDATE accounts SET amountDeposit = ? WHERE accountnr = ?";
         try {
             Connection conn = getConnection();
             PreparedStatement ps = conn.prepareStatement(sqlUpdate);
-            ps.setDouble(7, amountDeposit);
-            ps.executeUpdate();
-            System.out.println("Account updated successfully!");
+            ps.setDouble(1, newAmount);  // Set new balance
+            ps.setString(2, accountnr);  // Set account number
+            int rowsUpdated = ps.executeUpdate();
+            System.out.println(STR."Account balance updated for \{accountnr}. Rows affected: \{rowsUpdated}");
         } catch (SQLException e) {
             e.printStackTrace();
         }
