@@ -18,6 +18,8 @@ import java.sql.SQLException;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.*;
 
+import static java.lang.StringTemplate.STR;
+
 /**
  * A basic JFC based application.
  */
