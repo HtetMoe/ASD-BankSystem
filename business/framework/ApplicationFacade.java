@@ -1,5 +1,8 @@
 package edu.mum.cs.cs525.labs.exercises.project.business.framework;
 
+import edu.mum.cs.cs525.labs.exercises.project.business.framework.DAO.model.AccountDataModel;
+
+import java.sql.SQLException;
 import java.util.List;
 
 public interface ApplicationFacade<T> extends Subject{
@@ -14,7 +17,5 @@ public interface ApplicationFacade<T> extends Subject{
 
     public void undoLastTransaction(Account account);
 
-    public List<Account> getAccounts();
-
-
+    public List<Account> getAccounts() throws SQLException;
 }

@@ -8,7 +8,7 @@ import edu.mum.cs.cs525.labs.exercises.project.business.bank.observer.CompanyEma
 import edu.mum.cs.cs525.labs.exercises.project.business.bank.observer.PersonalEmailSender;
 import edu.mum.cs.cs525.labs.exercises.project.business.framework.Account;
 import edu.mum.cs.cs525.labs.exercises.project.business.framework.ApplicationFacade;
-import edu.mum.cs.cs525.labs.exercises.project.business.framework.database.DBConnect;
+import edu.mum.cs.cs525.labs.exercises.project.business.framework.DAO.DBConnect;
 import edu.mum.cs.cs525.labs.exercises.project.business.framework.EmailSender;
 import edu.mum.cs.cs525.labs.exercises.project.business.framework.MockEmailSender;
 
@@ -17,7 +17,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.*;
-
 import static java.lang.StringTemplate.STR;
 
 /**
@@ -80,11 +79,12 @@ public class BankFrm extends javax.swing.JFrame {
         JScrollPane1.setBounds(12, 92, 444, 160);
         JScrollPane1.getViewport().add(JTable1);
         JTable1.setBounds(0, 0, 420, 0);
-//        rowdata = new Object[8];
+        //rowdata = new Object[8];
 
         JButton_PerAC.setText("Add personal account");
         JPanel1.add(JButton_PerAC);
         JButton_PerAC.setBounds(24, 20, 192, 33);
+
         JButton_CompAC.setText("Add company account");
         JButton_CompAC.setActionCommand("jbutton");
         JPanel1.add(JButton_CompAC);
@@ -92,9 +92,11 @@ public class BankFrm extends javax.swing.JFrame {
         JButton_Deposit.setText("Deposit");
         JPanel1.add(JButton_Deposit);
         JButton_Deposit.setBounds(468, 104, 96, 33);
+
         JButton_Withdraw.setText("Withdraw");
         JPanel1.add(JButton_Withdraw);
         JButton_Addinterest.setBounds(448, 20, 106, 33);
+
         JButton_Addinterest.setText("Add interest");
         JPanel1.add(JButton_Addinterest);
         JButton_Withdraw.setBounds(468, 164, 96, 33);
@@ -116,24 +118,25 @@ public class BankFrm extends javax.swing.JFrame {
         JButton_Deposit.addActionListener(lSymAction);
         JButton_Withdraw.addActionListener(lSymAction);
         JButton_Addinterest.addActionListener(lSymAction);
-
     }
 
     private void loadAccountsIntoTable() {
         model.setRowCount(0);  // Clear existing data in the table
         try {
-            ResultSet rs = DBConnect.readAllAccounts();  // Fetch data from the DB
+            ResultSet rs = DBConnect.getAllAccounts();  // Fetch data from the DB
             int rowCount = 0; // To count the rows
+
+            // add row to table
             while (rs.next()) {
-                System.out.println("Fetch from Database.");
                 // Read data from the ResultSet and add it to the JTable
                 Object[] row = {
                         rs.getString("accountnr"),// Adjust column names as per your DB
                         rs.getString("accname"),
                         rs.getString("city"),
                         rs.getString("acctype"),// Personal/Company
-                        rs.getString("accstatus"),// Checking/Savings =>
-                        rs.getDouble("amountDeposit")
+                        rs.getString("accstatus"),// Checking/Savings
+                        rs.getDouble("amountDeposit"),
+                        rs.getString("email")
                 };
                 model.addRow(row);  // Add row to the table model
                 rowCount++;
@@ -149,6 +152,7 @@ public class BankFrm extends javax.swing.JFrame {
      * Sets the Look and Feel to the System Look and Feel.
      * Creates a new JFrame1 and makes it visible.
      *****************************************************/
+
     static public void main(String args[]) {
         try {
             // Add the following code if you want the Look and Feel
@@ -181,7 +185,7 @@ public class BankFrm extends javax.swing.JFrame {
         try {
             this.setVisible(false);    // hide the Frame
             this.dispose();            // free the system resources
-            System.exit(0);            // close the application
+            System.exit(0);     // close the application
         } catch (Exception e) {
         }
     }
@@ -196,7 +200,6 @@ public class BankFrm extends javax.swing.JFrame {
 
     void BankFrm_windowClosing(java.awt.event.WindowEvent event) {
         // to do: code goes here.
-
         BankFrm_windowClosing_Interaction1(event);
     }
 
@@ -255,38 +258,13 @@ public class BankFrm extends javax.swing.JFrame {
             newAccount.setName(clientName);
         }
 
-        //personal account
+        //CREATE PERSONAL ACCOUNT
         if (newaccount) {
-            // add row to table
-//            rowdata[0] = accountnr;
-//            rowdata[1] = clientName;
-//            rowdata[2] = city;
-//            rowdata[3] = "P";
-//            rowdata[4] = accountType;
-//            rowdata[5] = "0";
-//            model.addRow(rowdata);
-//            JTable1.getSelectionModel().setAnchorSelectionIndex(-1);
-//            newaccount = false;
+            String accType = "P";// Personal account
+            String accStatus = this.accountType.toString(); // Checking/Saving
 
-            // Capture input fields
-            String accountnr = this.accountnr;
-            String clientName = this.clientName;
-
-            String street = this.street;
-            String city  = this.city;
-            String zip   = this.zip;
-            String state = this.state;
-
-            String accType = "Personal";// Personal account
-            String accStatus = this.accountType.toString();//Checking/Saving
-
-            double amountDeposit = 0;//Double.parseDouble(this.amountDeposit);
-
-            // Call DBConnect to insert the account
-            DBConnect.createAccount(accountnr, clientName, street, city, zip, state, accType, accStatus, amountDeposit);
-
-            // Refresh the JTable (fetch data again)
-            loadAccountsIntoTable();
+            DBConnect.createAccount(this.accountnr, this.clientName, this.street, this.city, this.zip, this.state, accType, accStatus, 0, this.email);
+            loadAccountsIntoTable(); //Refresh DB
         }
     }
 
@@ -313,37 +291,14 @@ public class BankFrm extends javax.swing.JFrame {
             newAccount.setName(clientName);
         }
 
-        //company account
+        //CREATE COMPANY ACCOUNT
         if (newaccount) {
-            // add row to table
-//            rowdata[0] = accountnr;
-//            rowdata[1] = clientName;
-//            rowdata[2] = city;
-//            rowdata[3] = "C";
-//            rowdata[4] = accountType;
-//            rowdata[5] = "0";
-//            model.addRow(rowdata);
-//            JTable1.getSelectionModel().setAnchorSelectionIndex(-1);
-//            newaccount = false;
-
-            String accountnr = this.accountnr;
-            String clientName = this.clientName;
-
-            String street = this.street;
-            String city  = this.city;
-            String zip   = this.zip;
-            String state = this.state;
-
-            String accType = "Company";// Company account
+            String accType = "C";// Company account
             String accStatus = this.accountType.toString();// Checking/Saving
 
-            double amountDeposit = 0;//Double.parseDouble(this.amountDeposit);
-
             // Call DBConnect to insert the account
-            DBConnect.createAccount(accountnr, clientName, street, city, zip, state, accType, accStatus, amountDeposit);
-
-            // Refresh the JTable (fetch data again)
-            loadAccountsIntoTable();
+            DBConnect.createAccount(this.accountnr, this.clientName, this.street, this.city, this.zip, this.state, accType, accStatus, 0, this.email);
+            loadAccountsIntoTable(); //Refresh DB
         }
     }
 
@@ -362,16 +317,15 @@ public class BankFrm extends javax.swing.JFrame {
             // compute new amount
             if(amountDeposit != null && !amountDeposit.isEmpty() ){
                 long deposit = Long.parseLong(amountDeposit);
-                System.out.println("selection");
-                System.out.println(model.getValueAt(selection, 5));
-
                 Double samount = (Double) model.getValueAt(selection, 5);
+
                 //Account account = this.applicationFacade.getAccounts().get(selection);
                 //this.applicationFacade.deposit(account, Double.valueOf(amountDeposit));
 
                 Double currentamount = samount;
                 Double newamount = currentamount + deposit;
-                model.setValueAt(String.valueOf(newamount), selection, 5);
+                model.setValueAt(newamount, selection, 5);
+
                 DBConnect.updateAccountBalance(accnr, newamount);
             }
         }
@@ -389,25 +343,31 @@ public class BankFrm extends javax.swing.JFrame {
             wd.show();
 
             // compute new amount
-            long deposit = Long.parseLong(amountDeposit);
-            String samount = (String) model.getValueAt(selection, 5);
-            Account account = this.applicationFacade.getAccounts().get(selection);
-            this.applicationFacade.withdraw(account, Double.valueOf(amountDeposit));
-            long currentamount = Long.parseLong(samount);
-            long newamount = currentamount - deposit;
+            Double deposit = Double.parseDouble(amountDeposit);
+            Double samount = (Double) model.getValueAt(selection, 5);
+
+            //Account account = this.applicationFacade.getAccounts().get(selection);
+            //this.applicationFacade.withdraw(account, Double.valueOf(amountDeposit));
+
+            Double currentamount = samount;
+            Double newamount     = currentamount - deposit;
+
             if (newamount < 0) {
-                JOptionPane.showMessageDialog(JButton_Withdraw, " Account " + accnr + " : balance is negative: $" + String.valueOf(newamount) + " !", "Warning: negative balance", JOptionPane.WARNING_MESSAGE);
+                JOptionPane.showMessageDialog(JButton_Withdraw, STR." Account \{accnr} : balance is negative: $\{String.valueOf(newamount)} !", "Warning: negative balance", JOptionPane.WARNING_MESSAGE);
             } else {
-                model.setValueAt(String.valueOf(newamount), selection, 5);
+                model.setValueAt(newamount, selection, 5);
+                DBConnect.updateAccountBalance(accnr, newamount); //Update DB
             }
         }
     }
 
     void JButtonAddinterest_actionPerformed(java.awt.event.ActionEvent event) {
         this.applicationFacade.applyInterestToAllAccount();
-        for (int i = 0; i < this.applicationFacade.getAccounts().size(); i++) {
-            model.setValueAt(this.applicationFacade.getAccounts().get(i).getBalance(),i,5);
-        }
+//        for (int i = 0; i < this.applicationFacade.getAccounts().size(); i++) {
+//            model.setValueAt(this.applicationFacade.getAccounts().get(i).getBalance(),i,5);
+//        }
+        loadAccountsIntoTable(); // refresh DB
+
         JOptionPane.showMessageDialog(JButton_Addinterest, "Add interest to all accounts", "Add interest to all accounts", JOptionPane.WARNING_MESSAGE);
     }
 }

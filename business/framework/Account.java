@@ -15,7 +15,7 @@ public abstract class Account {
 
     protected TransactionProcessor invoker = new TransactionProcessor(); // Invoker for commands
 
-    private final List<Transaction> transactions = new ArrayList<Transaction>();
+    private final List<Transaction> transactions = new ArrayList<>();
     private Transaction lastAttemptTransaction;
 
     public Account(String accountNumber, double balance,InterestStrategy interestStrategy, String email) {

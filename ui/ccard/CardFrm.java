@@ -10,10 +10,14 @@ import edu.mum.cs.cs525.labs.exercises.project.business.ccard.account.GoldCard;
 import edu.mum.cs.cs525.labs.exercises.project.business.ccard.account.SilverCard;
 import edu.mum.cs.cs525.labs.exercises.project.business.framework.Account;
 import edu.mum.cs.cs525.labs.exercises.project.business.framework.ApplicationFacade;
+import edu.mum.cs.cs525.labs.exercises.project.business.framework.DAO.DBConnect;
 import edu.mum.cs.cs525.labs.exercises.project.business.framework.EmailSender;
 import edu.mum.cs.cs525.labs.exercises.project.business.framework.MockEmailSender;
+import edu.mum.cs.cs525.labs.exercises.project.ui.bank.BankFrm;
 
 import java.awt.BorderLayout;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 
 import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
@@ -39,7 +43,6 @@ public class CardFrm extends javax.swing.JFrame {
     private Object rowdata[];
 
     private ApplicationFacade<CreditCardAccountType> applicationFacade;
-
 
     public CardFrm() {
         thisframe = this;
@@ -122,14 +125,15 @@ public class CardFrm extends javax.swing.JFrame {
         try {
             // Add the following code if you want the Look and Feel
             // to be set to the Look and Feel of the native system.
-
             try {
                 UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
             } catch (Exception e) {
             }
-
             //Create a new instance of our application's frame, and make it visible.
-            (new CardFrm()).setVisible(true);
+            CardFrm cardFrm = new CardFrm();
+            cardFrm.loadAccountsIntoTable();
+            cardFrm.setVisible(true);
+
         } catch (Throwable t) {
             t.printStackTrace();
             //Ensure the application exits with an error condition.
@@ -165,7 +169,6 @@ public class CardFrm extends javax.swing.JFrame {
 
     void BankFrm_windowClosing(java.awt.event.WindowEvent event) {
         // to do: code goes here.
-
         BankFrm_windowClosing_Interaction1(event);
     }
 
@@ -230,16 +233,34 @@ public class CardFrm extends javax.swing.JFrame {
         ccac.show();
 
         if (newaccount) {
-            // add row to table
-            rowdata[0] = clientName;
-            rowdata[1] = ccnumber;
-            rowdata[2] = expdate;
-            rowdata[3] = accountType;
-            rowdata[4] = "0";
-            rowdata[5] = email;
-            model.addRow(rowdata);
-            JTable1.getSelectionModel().setAnchorSelectionIndex(-1);
-            newaccount = false;
+            //create
+            DBConnect.insertCCAccount(clientName, ccnumber, city, state, zip, email, expdate, accountType.toString(), 0.0);
+            loadAccountsIntoTable(); //refresh DB
+        }
+    }
+
+    private void loadAccountsIntoTable() {
+        model.setRowCount(0);  // Clear existing data in the table
+        try {
+            ResultSet rs = DBConnect.getAllCCAccounts();  // Fetch data from the DB
+            int rowCount = 0; // To count the rows
+
+            while (rs.next()) {
+                // Read data from the ResultSet and add it to the JTable
+                Object[] row = {
+                        rs.getString("accname"),
+                        rs.getString("ccnumber"),
+                        rs.getString("expireddate"),
+                        rs.getString("acctype"),// Gold, Silver, Bronze
+                        rs.getDouble("amountdeposit"),
+                        rs.getString("email")
+                };
+                model.addRow(row);  // Add row to the table model
+                rowCount++;
+            }
+            System.out.println(STR."DB : Loaded accounts : \{rowCount}");
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
     }
 
@@ -247,7 +268,6 @@ public class CardFrm extends javax.swing.JFrame {
         JDialogGenBill billFrm = new JDialogGenBill();
         billFrm.setBounds(450, 20, 400, 350);
         billFrm.show();
-
     }
 
     void JButtonDeposit_actionPerformed(java.awt.event.ActionEvent event) {
@@ -255,21 +275,27 @@ public class CardFrm extends javax.swing.JFrame {
         int selection = JTable1.getSelectionModel().getMinSelectionIndex();
         if (selection >= 0) {
             String name = (String) model.getValueAt(selection, 0);
+            String cc = (String) model.getValueAt(selection, 1);
 
             //Show the dialog for adding deposit amount for the current mane
             JDialog_Deposit dep = new JDialog_Deposit(thisframe, name);
             dep.setBounds(430, 15, 275, 140);
             dep.show();
 
-            Account account = this.applicationFacade.getAccounts().get(selection);
-            this.applicationFacade.deposit(account, Double.valueOf(amountDeposit));
-
             // compute new amount
-            long deposit = Long.parseLong(amountDeposit);
-            String samount = (String) model.getValueAt(selection, 4);
-            long currentamount = Long.parseLong(samount);
-            long newamount = currentamount + deposit;
-            model.setValueAt(String.valueOf(newamount), selection, 4);
+            if(amountDeposit != null && !amountDeposit.isEmpty()){
+                long deposit = Long.parseLong(amountDeposit);
+                Double samount = (Double) model.getValueAt(selection, 4);
+
+                //Account account = this.applicationFacade.getAccounts().get(selection);
+                //this.applicationFacade.deposit(account, Double.valueOf(amountDeposit));
+
+                Double currentamount = samount;
+                Double newamount = currentamount + deposit;
+                model.setValueAt(newamount, selection, 4);
+
+                DBConnect.updateCreditCardBalance(cc, newamount);
+            }
         }
     }
 
@@ -284,25 +310,28 @@ public class CardFrm extends javax.swing.JFrame {
             wd.setBounds(430, 15, 275, 140);
             wd.show();
 
-            Account account = this.applicationFacade.getAccounts().get(selection);
-            this.applicationFacade.withdraw(account, Double.valueOf(amountDeposit));
             // compute new amount
-            long deposit = Long.parseLong(amountDeposit);
-            String samount = (String) model.getValueAt(selection, 4);
-            long currentamount = Long.parseLong(samount);
-            long newamount = currentamount - deposit;
-            model.setValueAt(String.valueOf(newamount), selection, 4);
+            Double deposit = Double.parseDouble(amountDeposit);
+            Double samount = (Double) model.getValueAt(selection, 4);
+
+            //Account account = this.applicationFacade.getAccounts().get(selection);
+            //this.applicationFacade.withdraw(account, Double.valueOf(amountDeposit));
+
+            Double currentamount = samount;
+            Double newamount     = currentamount - deposit;
+
             if (newamount < 0) {
-                JOptionPane.showMessageDialog(JButton_Withdraw, " " + name + " Your balance is negative: $" + String.valueOf(newamount) + " !", "Warning: negative balance", JOptionPane.WARNING_MESSAGE);
+                JOptionPane.showMessageDialog(JButton_Withdraw, STR." \{name} Your balance is negative: $\{String.valueOf(newamount)} !", "Warning: negative balance", JOptionPane.WARNING_MESSAGE);
+            } else {
+                model.setValueAt(newamount, selection, 4);
+                DBConnect.updateAccountBalance(ccnumber, newamount); //Update DB
             }
         }
     }
 
     void JButtonAddinterest_actionPerformed(java.awt.event.ActionEvent event) {
         this.applicationFacade.applyInterestToAllAccount();
-        for (int i = 0; i < this.applicationFacade.getAccounts().size(); i++) {
-            model.setValueAt(this.applicationFacade.getAccounts().get(i).getBalance(),i,4);
-        }
+        loadAccountsIntoTable();
         JOptionPane.showMessageDialog(JButton_Addinterest, "Add interest to all accounts", "Add interest to all accounts", JOptionPane.WARNING_MESSAGE);
     }
 }
