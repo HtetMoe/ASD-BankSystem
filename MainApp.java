@@ -9,6 +9,7 @@ import edu.mum.cs.cs525.labs.exercises.project.business.framework.*;
 public class MainApp {
 
     public static void main(String[] args) {
+
         // Create bank accounts using enums
         AccountFactory<BankAccountType> bankFactory = new BankAccountFactory();
         Account savings = bankFactory.createAccount(BankAccountType.SAVINGS, 0.0,"SAV12345");
@@ -22,25 +23,27 @@ public class MainApp {
         ///Command pattern
 //        Command deposit1000 = new DepositCommand(savings, 1000);
 //        savings.executeTransaction(deposit1000);
+
         // Deposit money and apply interest
         savings.deposit(1000);
         savings.withdraw(500);
         savings.applyInterest();
+
         for (Transaction transaction : savings.getTransactions()) {
             System.out.println(transaction);
         }
-        System.out.println(savings.getAccountType() + " Balance: " + savings.getBalance());
+        System.out.println(STR."\{savings.getAccountType()} Balance: \{savings.getBalance()}");
 
         checking.deposit(500);
         checking.applyInterest();
-        System.out.println(checking.getAccountType() + " Balance: " + checking.getBalance());
+        System.out.println(STR."\{checking.getAccountType()} Balance: \{checking.getBalance()}");
 
         goldCard.deposit(2000);
         goldCard.applyInterest();
-        System.out.println(goldCard.getAccountType() + " Balance: " + goldCard.getBalance());
+        System.out.println(STR."\{goldCard.getAccountType()} Balance: \{goldCard.getBalance()}");
 
         silverCard.deposit(1500);
         silverCard.applyInterest();
-        System.out.println(silverCard.getAccountType() + " Balance: " + silverCard.getBalance());
+        System.out.println(STR."\{silverCard.getAccountType()} Balance: \{silverCard.getBalance()}");
     }
 }

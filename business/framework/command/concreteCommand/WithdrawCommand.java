@@ -1,6 +1,10 @@
-package edu.mum.cs.cs525.labs.exercises.project.business.framework;
+package edu.mum.cs.cs525.labs.exercises.project.business.framework.command.concreteCommand;
 
-public class WithdrawCommand implements Command{
+import edu.mum.cs.cs525.labs.exercises.project.business.framework.Account;
+import edu.mum.cs.cs525.labs.exercises.project.business.framework.command.Command;
+
+//command for withdraw operation
+public class WithdrawCommand implements Command {
     private Account account;
     private double amount;
 

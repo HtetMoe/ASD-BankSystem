@@ -3,18 +3,12 @@ package edu.mum.cs.cs525.labs.exercises.project.business.framework;
 import java.util.List;
 
 public interface ApplicationFacade<T> {
+    Account createAccount(T accountType, double balance, String accountNumber);
 
-    public Account createAccount(T accountType,double balance ,String accountNumber);
+    void deposit(Account account, double amount);
+    void withdraw(Account account, double amount);
+    void undoLastTransaction(Account account);
 
-    public void deposit(Account account,double amount);
-
-    public void withdraw(Account account,double amount);
-
-    public void applyInterestToAllAccount();
-
-    public void undoLastTransaction(Account account);
-
-    public List<Account> getAccounts();
-
-
+    void applyInterestToAllAccount();
+    List<Account> getAccounts();
 }

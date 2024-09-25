@@ -1,5 +1,8 @@
 package edu.mum.cs.cs525.labs.exercises.project.business.framework;
 
+import edu.mum.cs.cs525.labs.exercises.project.business.framework.command.Command;
+import edu.mum.cs.cs525.labs.exercises.project.business.framework.command.Invoker.TransactionProcessor;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -9,7 +12,7 @@ public abstract class Account {
     private double balance;
     private InterestStrategy interestStrategy;
 
-    protected AccountInvoker invoker = new AccountInvoker(); // Invoker for commands
+    protected TransactionProcessor invoker = new TransactionProcessor(); // Invoker for commands
 
     private final List<Transaction> transactions = new ArrayList<Transaction>();
 
@@ -58,7 +61,7 @@ public abstract class Account {
     public abstract String getAccountType();
 
     public void executeTransaction(Command command) {
-        invoker.executeCommand(command);
+        invoker.processTransaction(command);
     }
 
     // Undo the last transaction
