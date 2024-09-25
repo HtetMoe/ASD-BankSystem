@@ -41,6 +41,7 @@ public class BankFrm extends javax.swing.JFrame {
         getContentPane().setLayout(new BorderLayout(0, 0));
         setSize(575, 310);
         setVisible(false);
+
         JPanel1.setLayout(null);
         getContentPane().add(BorderLayout.CENTER, JPanel1);
         JPanel1.setBounds(0, 0, 575, 310);
@@ -110,16 +111,40 @@ public class BankFrm extends javax.swing.JFrame {
         JButton_Withdraw.addActionListener(lSymAction);
         JButton_Addinterest.addActionListener(lSymAction);
     }
+
+    private void loadAccountsIntoTable() {
+        model.setRowCount(0);  // Clear existing data in the table
+        try {
+            ResultSet rs = DBConnect.readAllAccounts();  // Fetch data from the DB
+            int rowCount = 0; // To count the rows
+            while (rs.next()) {
+                System.out.println("Fetch from Database.");
+                // Read data from the ResultSet and add it to the JTable
+                Object[] row = {
+                        rs.getString("accountnr"),// Adjust column names as per your DB
+                        rs.getString("clientName"),
+                        rs.getString("city"),
+                        rs.getString("clientType"),// Personal/Company
+                        "P", // Checking/Savings => rs.getString("accountType")
+                        rs.getDouble("amountDeposit")
+                };
+                model.addRow(row);  // Add row to the table model
+                rowCount++;
+            }
+            System.out.println(STR."DB : Loaded accounts : \{rowCount}");
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
     /*****************************************************
      * The entry point for this application.
      * Sets the Look and Feel to the System Look and Feel.
      * Creates a new JFrame1 and makes it visible.
      *****************************************************/
 
-    static public void main(String args[]) {
-        //fetch data
-        DBConnect.getData();
 
+    static public void main(String args[]) {
         try {
             // Add the following code if you want the Look and Feel
             // to be set to the Look and Feel of the native system.
@@ -129,7 +154,10 @@ public class BankFrm extends javax.swing.JFrame {
             }
 
             //Create a new instance of our application's frame, and make it visible.
-            (new BankFrm()).setVisible(true);
+            BankFrm bankFrm = new BankFrm();
+            //(new BankFrm()).setVisible(true);
+            bankFrm.loadAccountsIntoTable();
+            bankFrm.setVisible(true);
         } catch (Throwable t) {
             t.printStackTrace();
             //Ensure the application exits with an error condition.
@@ -223,54 +251,33 @@ public class BankFrm extends javax.swing.JFrame {
 
         if (newaccount) {
             // add row to table
-            rowdata[0] = accountnr;
-            rowdata[1] = clientName;
-            rowdata[2] = city;
-            rowdata[3] = "P";
-            rowdata[4] = accountType;
-            rowdata[5] = "0";
-            model.addRow(rowdata);
-            JTable1.getSelectionModel().setAnchorSelectionIndex(-1);
-            newaccount = false;
-        }
+//            rowdata[0] = accountnr;
+//            rowdata[1] = clientName;
+//            rowdata[2] = city;
+//            rowdata[3] = "P";
+//            rowdata[4] = accountType;
+//            rowdata[5] = "0";
+//            model.addRow(rowdata);
+//            JTable1.getSelectionModel().setAnchorSelectionIndex(-1);
+//            newaccount = false;
 
-//        // Capture input fields
-//        String accountnr = this.accountnr;
-//        String clientName = this.clientName;
-//        String street = this.street;
-//        String city = this.city;
-//        String zip = this.zip;
-//        String state = this.state;
-//        String clientType = "Personal"; // Personal account
-//        //double amountDeposit = Double.parseDouble(this.amountDeposit);
-//
-//        // Call DBConnect to insert the account
-//        DBConnect.createAccount(accountnr, clientName, street, city, zip, state, clientType, 0);
-//
-//        // Refresh the JTable (fetch data again)
-//        loadAccountsIntoTable();
-    }
+            // Capture input fields
+            String accountnr = this.accountnr;
+            String clientName = this.clientName;
+            String street = this.street;
+            String city = this.city;
+            String zip = this.zip;
+            String state = this.state;
+            String clientType = "Personal"; // Personal account
+            double amountDeposit = 0;//Double.parseDouble(this.amountDeposit);
 
-    private void loadAccountsIntoTable() {
-        model.setRowCount(0);  // Clear existing rows
+            // Call DBConnect to insert the account
+            DBConnect.createAccount(accountnr, clientName, street, city, zip, state, clientType, amountDeposit);
 
-        try {
-            ResultSet rs = DBConnect.readAllAccounts();
-            while (rs.next()) {
-                Object[] row = {
-                        rs.getString("accountnr"),
-                        rs.getString("clientName"),
-                        rs.getString("city"),
-                        rs.getString("clientType"),
-                        rs.getString("amountDeposit")
-                };
-                model.addRow(row);
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
+            // Refresh the JTable (fetch data again)
+            loadAccountsIntoTable();
         }
     }
-
 
     void JButtonCompAC_actionPerformed(java.awt.event.ActionEvent event) {
 		/*

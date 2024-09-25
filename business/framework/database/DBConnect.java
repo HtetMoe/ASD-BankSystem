@@ -16,19 +16,11 @@ public class DBConnect {
 
     private static Connection connection = null;
 
-    //connect DB
+    // Get a singleton database connection
     public static Connection getConnection() throws SQLException{
-        try {
-            if (connection == null) {
-                //establish the connection
-                connection = DriverManager.getConnection(URL, USER, PASSWORD);
-                System.out.println("Connected to the database successfully!");
-            }
-        }
-        catch (SQLException e) {
-            System.out.println("Failed to connect to the database!");
-            e.printStackTrace();
-            throw e; // rethrowing the SQLException
+        if (connection == null) {
+            connection = DriverManager.getConnection(URL, USER, PASSWORD); //establish the connection
+            System.out.println("Connected to the database successfully!");
         }
         return connection;
     }
@@ -62,16 +54,7 @@ public class DBConnect {
         try {
             Connection conn = getConnection();
             PreparedStatement ps = conn.prepareStatement(sqlSelectAll);
-
-            ResultSet rs = ps.executeQuery();
-            while (rs.next()) {
-                String no = rs.getString("accountnr");
-                String name = rs.getString("clientName");
-                double amount = rs.getDouble("amountDeposit");
-                System.out.println(STR."accNum: \{no} name: \{name} amount: \{amount}");
-            }
-
-            return rs;// Return result set
+            return ps.executeQuery(); // Execute query and return ResultSet
         } catch (SQLException e) {
             e.printStackTrace();
             return null;
