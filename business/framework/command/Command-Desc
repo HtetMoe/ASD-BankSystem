@@ -1,0 +1,42 @@
+Command Pattern
+----------------
+     This pattern encapsulates a request (e.g., a transaction) as an object,
+     allowing you to parameterize methods with different transactions, queue them,
+     log them, and support undo/redo operations if needed.
+
+Why Use the Command Pattern for Deposit and Withdraw?
+-------------------------------------------------------
+-> Encapsulation : encapsulate the requests as an object.
+-> It allows the different transitions
+-> queue (history of transitions) and log
+
+Encapsulation:
+	The Command Pattern encapsulates the logic of deposit and withdrawal operations
+	into separate command objects. This decouples the request (deposit/withdraw)
+	from the object (account) that performs the operation.
+
+Reusability:
+	By using commands, we can easily reuse deposit and withdrawal logic in both
+	banking and credit card systems without duplicating code.
+
+Extensibility:
+	New operations, such as fund transfers or account closures, can be easily added
+	as new command classes without altering existing logic.
+
+Transaction History:
+	The Command Pattern is ideal for tracking transaction history, which can be
+	important for auditing, generating reports, and providing undo/redo
+	functionality.
+
+How does it work?
+------------------
+Command Interface:
+	Defines the common interface that all commands (deposit, withdraw) must implement.
+
+Concrete Command Classes:
+	DepositCommand and WithdrawCommand implement the command interface, encapsulating
+	the details of deposit and withdrawal operations.
+
+Invoker Class:
+	Executes the command by invoking the operation. In this case, it could be part of
+	the framework that processes the transactions.
